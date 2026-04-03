@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Galaxia del Amor</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+        font-family: Arial, sans-serif;
+    }
+
+    #mensaje {
+        position: absolute;
+        top: 20px;
+        width: 100%;
+        text-align: center;
+        color: white;
+        font-size: 28px;
+        letter-spacing: 3px;
+        z-index: 10;
+    }
+</style>
+</head>
+<body>
+
+<div id="mensaje">Nuestra Galaxia ❤️</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// ======================
+// 🌟 FONDO DE ESTRELLAS
+// ======================
+let starGeometry = new THREE.BufferGeometry();
+let starVertices = [];
+for (let i = 0; i < 12000; i++) {
+    starVertices.push(
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000
+    );
+}
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+let starMaterial = new THREE.PointsMaterial({color: 0xffffff});
+let stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+// ======================
+// 💖 CENTRO
+// ======================
+let center = new THREE.Mesh(
+    new THREE.SphereGeometry(2, 32, 32),
+    new THREE.MeshBasicMaterial({color: 0xFFCF33})
+);
+scene.add(center);
+
+// ======================
+// 🖼️ FOTOS
+// ======================
+let loader = new THREE.TextureLoader();
+let fotos = [
+    "foto1.jpeg",
+    "f2.jpeg",
+    "f3.jpeg",
+    "f4.jpeg",
+    "f5.jpeg",
+    "f6.jpeg",
+    "f7.jpeg",
+    "f8.jpeg",
+    "f9.jpeg",
+    "f10.jpeg",
+    "f11.jpeg",
+    "f12.jpeg",
+    "f13.jpeg",
+    "f14.jpeg",
+    "f15.jpeg",
+    "f16.jpeg",
+    "f17.jpeg",
+    "f18.jpeg",
+    "f19.jpeg"
+];
+let objetos = [];
+
+fotos.forEach((f,i)=>{
+    let mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(4,4),
+        new THREE.MeshBasicMaterial({map: loader.load(f)})
+    );
+
+    mesh.userData = {
+        angle: Math.random()*Math.PI*2,
+        radius: 10 + Math.random()*10,
+        speed: 0.001 + Math.random()*0.002
+    };
+
+    scene.add(mesh);
+    objetos.push(mesh);
+});
+
+// ======================
+// 💬 FRASES
+// ======================
+let frases = [
+    "Eres mi universo",
+    "Te quiero Vale",
+    "Tú eres mi solecito",
+    "Te quiero mucho guapa!!",
+    "Mi noviecita linda",
+    "Guapota",
+    "Lindota",
+    "Val <3",
+    "Mi corazoncito",
+    "Mi amorcito lindaaaa",
+    "Felices 4 mes Vale",
+    "Buenos dias amor", "Amorcitoooo","Mi niña linda"
+];
+
+frases.forEach(txt=>{
+    let canvas = document.createElement("canvas");
+    let ctx = canvas.getContext("2d");
+    canvas.width = 512;
+    canvas.height = 256;
+
+    ctx.fillStyle="white";
+    ctx.font="40px Arial";
+    ctx.fillText(txt,50,130);
+
+    let mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(6,3),
+        new THREE.MeshBasicMaterial({
+            map: new THREE.CanvasTexture(canvas),
+            transparent:true
+        })
+    );
+
+    mesh.userData = {
+        angle: Math.random()*Math.PI*2,
+        radius: 15 + Math.random()*10,
+        speed: 0.001
+    };
+
+    scene.add(mesh);
+    objetos.push(mesh);
+});
+
+// ======================
+// 🌠 ESTRELLAS FUGACES
+// ======================
+let shootingStars = [];
+
+function createShootingStar() {
+    let geometry = new THREE.SphereGeometry(0.2, 8, 8);
+    let material = new THREE.MeshBasicMaterial({color: 0xffffff});
+    let star = new THREE.Mesh(geometry, material);
+
+    star.position.set(
+        (Math.random()-0.5)*500,
+        (Math.random()-0.5)*500,
+        -500
+    );
+
+    star.userData = {
+        speedX: 2 + Math.random()*3,
+        speedY: -1 - Math.random()*2
+    };
+
+    scene.add(star);
+    shootingStars.push(star);
+}
+
+// Generar estrellas fugaces cada cierto tiempo
+setInterval(createShootingStar, 1500);
+
+// ======================
+// 🎥 VIAJE DE CÁMARA
+// ======================
+let time = 0;
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener("mousemove", e=>{
+    mouseX = (e.clientX - window.innerWidth/2) * 0.001;
+    mouseY = (e.clientY - window.innerHeight/2) * 0.001;
+});
+
+function animate() {
+    requestAnimationFrame(animate);
+    time += 0.002;
+
+    // 🌌 ÓRBITA DE OBJETOS
+    objetos.forEach(o=>{
+        o.userData.angle += o.userData.speed;
+        o.position.x = Math.cos(o.userData.angle)*o.userData.radius;
+        o.position.z = Math.sin(o.userData.angle)*o.userData.radius;
+        o.lookAt(camera.position);
+    });
+
+    // 🌠 MOVER ESTRELLAS FUGACES
+    shootingStars.forEach((s,i)=>{
+        s.position.x += s.userData.speedX;
+        s.position.y += s.userData.speedY;
+
+        if(s.position.x > 500 || s.position.y < -500){
+            scene.remove(s);
+            shootingStars.splice(i,1);
+        }
+    });
+
+    // 🚀 VIAJE AUTOMÁTICO DE CÁMARA (órbita + zoom)
+    let radius = 30 + Math.sin(time*2)*10;
+    camera.position.x = Math.cos(time) * radius;
+    camera.position.z = Math.sin(time) * radius;
+    camera.position.y = Math.sin(time*1.5) * 10;
+
+    // 🎮 interacción con mouse (suave)
+    camera.position.x += mouseX * 10;
+    camera.position.y += -mouseY * 10;
+
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
+}
+
+camera.position.z = 30;
+animate();
+
+// ======================
+window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+<!--
+<script>
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Fondo de estrellas
+let starGeometry = new THREE.BufferGeometry();
+let starVertices = [];
+for (let i = 0; i < 10000; i++) {
+    let x = (Math.random() - 0.5) * 2000;
+    let y = (Math.random() - 0.5) * 2000;
+    let z = (Math.random() - 0.5) * 2000;
+    starVertices.push(x, y, z);
+}
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+let starMaterial = new THREE.PointsMaterial({color: 0xffffff});
+let stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+// Centro de galaxia
+let centerGeometry = new THREE.SphereGeometry(2, 32, 32);
+let centerMaterial = new THREE.MeshBasicMaterial({color: 0xFFF97A});
+let centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
+scene.add(centerSphere);
+
+// Fotos
+let textureLoader = new THREE.TextureLoader();
+let fotos = [
+    "foto1.jpeg",
+    "f2.jpeg",
+    "f3.jpeg",
+    "f4.jpeg",
+    "f5.jpeg",
+    "f6.jpeg",
+    "f7.jpeg",
+    "f8.jpeg",
+    "f9.jpeg",
+    "f10.jpeg",
+    "f11.jpeg",
+    "f12.jpeg",
+    "f13.jpeg",
+    "f14.jpeg",
+    "f15.jpeg",
+    "f16.jpeg",
+    "f17.jpeg",
+    "f18.jpeg",
+    "f19.jpeg"
+];
+
+let objetos = [];
+
+fotos.forEach((foto, i) => {
+    let texture = textureLoader.load(foto);
+    let material = new THREE.MeshBasicMaterial({map: texture});
+    let geometry = new THREE.PlaneGeometry(4, 4);
+    let mesh = new THREE.Mesh(geometry, material);
+
+    mesh.userData = {
+        angle: Math.random() * Math.PI * 2,
+        radius: 10 + Math.random() * 10,
+        speed: 0.001 + Math.random() * 0.002
+    };
+
+    scene.add(mesh);
+    objetos.push(mesh);
+});
+
+// Frases
+let frases = [
+    "Eres mi universo",
+    "Mi estrella favorita",
+    "Tú eres mi solecito",
+    "Te quiero mucho guapa!!",
+    "Mi noviecita linda",
+    "Guapota",
+    "Lindota",
+    "Val <3",
+    "Mi corazoncito",
+    "Mi amorcito lindaaaa",
+    "Felices 4 mes Vale"
+];
+
+frases.forEach((texto, i) => {
+    let canvas = document.createElement("canvas");
+    let ctx = canvas.getContext("2d");
+    canvas.width = 512;
+    canvas.height = 256;
+
+    ctx.fillStyle = "white";
+    ctx.font = "40px Arial";
+    ctx.fillText(texto, 50, 130);
+
+    let texture = new THREE.CanvasTexture(canvas);
+    let material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
+    let geometry = new THREE.PlaneGeometry(6, 3);
+    let mesh = new THREE.Mesh(geometry, material);
+
+    mesh.userData = {
+        angle: Math.random() * Math.PI * 2,
+        radius: 15 + Math.random() * 10,
+        speed: 0.0008 + Math.random() * 0.002
+    };
+
+    scene.add(mesh);
+    objetos.push(mesh);
+});
+
+camera.position.z = 30;
+
+// Cámara con mouse
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener("mousemove", (event) => {
+    mouseX = (event.clientX - window.innerWidth / 2) * 0.002;
+    mouseY = (event.clientY - window.innerHeight / 2) * 0.002;
+});
+
+// Animación
+function animate() {
+    requestAnimationFrame(animate);
+
+    objetos.forEach(obj => {
+        obj.userData.angle += obj.userData.speed;
+        obj.position.x = Math.cos(obj.userData.angle) * obj.userData.radius;
+        obj.position.z = Math.sin(obj.userData.angle) * obj.userData.radius;
+        obj.lookAt(camera.position);
+    });
+
+    camera.position.x += (mouseX * 20 - camera.position.x) * 0.05;
+    camera.position.y += (-mouseY * 20 - camera.position.y) * 0.05;
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script> 
+-->
+</body>
+</html>
